@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>验证码接收器 — DeployFlow</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root[data-theme=dark]{--bg:#0a0a0a;--bg2:#141414;--bg3:#1e1e1e;--bg4:#2a2a2a;--ink:#fff;--muted:#a0a0a0;--accent:#4d8bf5;--success:#22c55e;--warn:#f59e0b;--error:#ef4444;--rule:#2a2a2a}
+:root[data-theme=light]{--bg:#fff;--bg2:#fff;--bg3:#f7f8fa;--bg4:#ebedf0;--ink:#000;--muted:#666;--accent:#2563eb;--success:#16a34a;--warn:#d97706;--error:#dc2626;--rule:#e0e0e0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:var(--bg2);border:1px solid var(--rule);border-radius:12px;padding:40px;max-width:460px;width:100%;text-align:center}
+.logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#3a78e0);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:24px;margin:0 auto 20px}
+h1{font-size:22px;font-weight:700;margin-bottom:8px}
+.desc{font-size:14px;color:var(--muted);margin-bottom:28px;line-height:1.6}
+.code-box{background:var(--bg3);border:2px dashed var(--rule);border-radius:10px;padding:30px 20px;margin-bottom:20px;transition:border-color .2s}
+.code-box.has-code{border-color:var(--success);border-style:solid}
+.code-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.code-value{font-size:36px;font-weight:800;letter-spacing:8px;color:var(--accent);font-family:"SF Mono","Fira Code","Consolas",monospace}
+.code-value.empty{color:var(--muted);font-size:16px;font-weight:400;letter-spacing:0}
+.code-email{font-size:13px;color:var(--muted);margin-top:8px}
+.countdown{font-size:12px;color:var(--warn);margin-top:10px}
+.hint{font-size:12px;color:var(--muted);line-height:1.6;margin-top:20px;padding:12px;background:var(--bg3);border-radius:8px;text-align:left}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">D</div>
+  <h1>验证码接收器</h1>
+  <p class="desc">实时显示 DeployFlow 发送的验证码<br>注册时发送验证码后，此处会自动显示最新验证码</p>
+  <div class="code-box" id="codeBox">
+    <div class="code-label">最新验证码</div>
+    <div class="code-value empty" id="codeValue">等待中...</div>
+    <div class="code-email" id="codeEmail"></div>
+    <div class="countdown" id="countdown" style="display:none"></div>
+  </div>
+  <div class="hint">
+    <strong>使用方法：</strong><br>
+    1. 在注册页面输入邮箱并点击「获取验证码」<br>
+    2. 此页面会自动显示最新的验证码<br>
+    3. 将验证码填入注册表单完成注册<br><br>
+    <strong>注意：</strong>验证码5分钟内有效，此页面每3秒自动刷新一次。配置 SMTP 后可发送真实邮件，无需在此页面查看。
+  </div>
+</div>
+<script>
+var lastCode = null;
+function checkCode() {
+  fetch('/api/send-email?check=1').then(function(r) { return r.json(); }).then(function(data) {
+    if (data.code && data.code !== lastCode) {
+      lastCode = data.code;
+      var box = document.getElementById('codeBox');
+      var val = document.getElementById('codeValue');
+      var email = document.getElementById('codeEmail');
+      var cd = document.getElementById('countdown');
+      box.classList.add('has-code');
+      val.className = 'code-value';
+      val.textContent = data.code;
+      email.textContent = '邮箱: ' + (data.email || '未知');
+      // Countdown
+      var remaining = 300;
+      cd.style.display = 'block';
+      var timer = setInterval(function() {
+        remaining--;
+        var m = Math.floor(remaining / 60);
+        var s = remaining % 60;
+        cd.textContent = '有效期剩余: ' + m + '分' + s + '秒';
+        if (remaining <= 0) { clearInterval(timer); cd.textContent = '验证码已过期'; box.classList.remove('has-code'); val.className = 'code-value empty'; val.textContent = '已过期'; }
+      }, 1000);
+    }
+  }).catch(function() {});
+}
+checkCode();
+setInterval(checkCode, 3000);
+</script>
+</body>
+</html>
