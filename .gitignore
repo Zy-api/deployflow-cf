@@ -1,0 +1,14 @@
+node_modules/
+.wrangler/
+.env
+.env.example
+uploads/
+deployed/
+config/
+database/
+middleware/
+routes/
+server.js
+create_pages.sh
+build_assets.py
+schema.sql
