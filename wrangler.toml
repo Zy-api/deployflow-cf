@@ -1,0 +1,8 @@
+name = "deployflow"
+pages_build_output_dir = "public"
+compatibility_date = "2025-07-18"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "deployflow_db"
+database_id = "c543382d-a80b-4d51-8429-5da94dddecab"
